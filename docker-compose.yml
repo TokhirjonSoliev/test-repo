@@ -1,0 +1,39 @@
+services:
+  mentorship-app:
+    container_name: mentorship-app
+    build: .
+    image: mentorship-app:latest
+    ports:
+      - 8081:8080
+    depends_on:
+      mentorship_db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://mentorship_db:5432/mentorship
+    networks:
+      - spring-cloud-network
+
+  mentorship_db:
+    container_name: mentorship_db
+    image: postgres
+    ports:
+      - 5435:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root1234
+      - POSTGRES_DB=mentorship
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 25s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - spring-cloud-network
+volumes:
+  db-data:
+networks:
+  spring-cloud-network:
+    driver: bridge
